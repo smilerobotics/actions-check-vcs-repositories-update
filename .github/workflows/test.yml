@@ -58,6 +58,6 @@ jobs:
           working_directory: .
           command_output: ~/test_is_same
           cache_key_prefix: "test-is-same-${{ matrix.os }}"
-#      - run: |
-#          test "${{ steps.check.outputs.is_updated }}" == "false"
-#        shell: bash
+      - run: |
+          test "${{ steps.check.outputs.is_updated }}" == "false"
+        shell: bash
