@@ -1,0 +1,63 @@
+name: Test
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test_is_updated:
+    strategy:
+      matrix:
+        os: [ ubuntu-20.04, ubuntu-18.04 ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - run: |
+          echo "repositories:" >/tmp/vcs.repos
+          echo "  actions-vcs-import:" >>/tmp/vcs.repos
+          echo "    type: git" >>/tmp/vcs.repos
+          echo "    url: https://github.com/smilerobotics/actions-vcs-import" >>/tmp/vcs.repos
+          echo "    version: main" >>/tmp/vcs.repos
+          echo "  actions-check-github-repository-update:" >>/tmp/vcs.repos
+          echo "    type: git" >>/tmp/vcs.repos
+          echo "    url: https://github.com/smilerobotics/actions-check-github-repository-update" >>/tmp/vcs.repos
+          echo "    version: main" >>/tmp/vcs.repos
+        shell: bash
+      - uses: smilerobotics/actions-check-vcs-repositories-update@v1
+        id: check
+        with:
+          vcs_setting_file: /tmp/vcs.repos
+          working_directory: .
+          command_output: ~/test_is_updated
+          cache_key_prefix: "test-is-updated-${{ matrix.os }}"
+      - run: |
+          test "${{ steps.check.outputs.is_updated }}" == "true"
+          echo > ~/test_is_updated
+        shell: bash
+  test_is_same:
+    strategy:
+      matrix:
+        os: [ ubuntu-20.04, ubuntu-18.04 ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - run: |
+          echo "repositories:" >/tmp/vcs.repos
+          echo "  actions-vcs-import:" >>/tmp/vcs.repos
+          echo "    type: git" >>/tmp/vcs.repos
+          echo "    url: https://github.com/smilerobotics/actions-vcs-import" >>/tmp/vcs.repos
+          echo "    version: v1.0.0" >>/tmp/vcs.repos
+          echo "  actions-check-github-repository-update:" >>/tmp/vcs.repos
+          echo "    type: git" >>/tmp/vcs.repos
+          echo "    url: https://github.com/smilerobotics/actions-check-github-repository-update" >>/tmp/vcs.repos
+          echo "    version: v1.0.0" >>/tmp/vcs.repos
+        shell: bash
+      - uses: smilerobotics/actions-check-vcs-repositories-update@v1
+        id: check
+        with:
+          vcs_setting_file: /tmp/vcs.repos
+          working_directory: .
+          command_output: ~/test_is_same
+          cache_key_prefix: "test-is-same-${{ matrix.os }}"
+#      - run: |
+#          test "${{ steps.check.outputs.is_updated }}" == "false"
+#        shell: bash

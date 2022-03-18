@@ -1,0 +1,35 @@
+name: 'check-vcs-repositories-update'
+description: 'check repositories update defined in vcs config.'
+inputs:
+  vcs_setting_file:
+    required: true
+    description: 'Path of the file for vcs import.'
+  working_directory:
+    description: 'Working directory.'
+    required: true
+  command_output:
+    description: 'Path of the vcs export output file.'
+    required: true
+  cache_key_prefix:
+    description: 'Key prefix for cache of the vcs export output file.'
+    required: true
+outputs:
+  is_updated:
+    description: "If the repository is updated, true."
+    value: ${{ steps.result.outputs.is_updated }}
+runs:
+  using: "composite"
+  steps:
+    - uses: smilerobotics/actions-vcs-import@v1
+      with:
+        vcs_setting_file: ${{ inputs.vcs_setting_file }}
+        target_dir: ${{ inputs.working_directory }}
+    - uses: smilerobotics/actions-check-command-output-diff@v1
+      id: compare
+      with:
+        command: "cd ${{ inputs.working_directory }} && vcs export --exact"
+        command_output: ${{ inputs.command_output }}
+        cache_key_prefix: ${{ inputs.cache_key_prefix }}
+    - id: result
+      run: test "${{ steps.compare.outputs.is_same }}" == "true" && echo "::set-output name=is_updated::false" || echo "::set-output name=is_updated::true"
+      shell: bash
